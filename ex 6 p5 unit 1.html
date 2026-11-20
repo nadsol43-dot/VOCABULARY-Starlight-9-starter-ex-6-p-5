@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Environmental Problems Matching Game</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --success: #10b981;
+            --error: #ef4444;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #1e293b;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+            margin: 0;
+        }
+
+        .container {
+            background: var(--card);
+            max-width: 700px;
+            width: 100%;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #64748b;
+            margin-bottom: 25px;
+            font-size: 0.95rem;
+        }
+
+        .phase {
+            margin-bottom: 30px;
+            display: none; /* Hidden by default */
+        }
+
+        .phase.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .match-area {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .column {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .column-title {
+            font-weight: 600;
+            text-align: center;
+            color: #475569;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .item-btn {
+            padding: 14px;
+            background: #f1f5f9;
+            border: 2px solid transparent;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+
+        .item-btn:hover:not(.matched) {
+            background: #e2e8f0;
+            transform: translateY(-2px);
+        }
+
+        .item-btn.selected {
+            background: #fef08a;
+            border-color: #eab308;
+            transform: scale(1.02);
+        }
+
+        /* Colors for matched pairs */
+        .pair-1 { background: #dbeafe; border-color: #3b82f6; color: #1e40af; }
+        .pair-2 { background: #dcfce7; border-color: #22c55e; color: #166534; }
+        .pair-3 { background: #fce7f3; border-color: #ec4899; color: #9d174d; }
+        .pair-4 { background: #f3e8ff; border-color: #a855f7; color: #6b21a8; }
+        .pair-5 { background: #ffedd5; border-color: #f97316; color: #9a3412; }
+        .pair-6 { background: #ccfbf1; border-color: #14b8a6; color: #115e59; }
+
+        .item-btn.matched {
+            cursor: default;
+            font-weight: 600;
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn:hover {
+            background: #1d4ed8;
+        }
+
+        .btn-secondary {
+            background: #64748b;
+            margin-top: 10px;
+        }
+
+        .btn-secondary:hover {
+            background: #475569;
+        }
+
+        .feedback {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 500;
+            display: none;
+        }
+
+        .feedback.show { display: block; }
+        .feedback.success { background: #dcfce7; color: #166534; }
+        .feedback.error { background: #fee2e2; color: #991b1b; }
+
+        /* Phase 2 Styles */
+        .phrase-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .phrase-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: #f8fafc;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .phrase-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: var(--primary);
+        }
+
+        .phrase-item label {
+            font-size: 1.05rem;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .result-icon {
+            margin-left: auto;
+            font-size: 1.2rem;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🌍 Global Issues</h1>
+    <p class="subtitle">Match the words to form phrases, then identify the environmental problems!</p>
+
+    <!-- PHASE 1: MATCHING -->
+    <div id="phase1" class="phase active">
+        <h3 style="text-align:center; margin-bottom:20px;">Step 1: Click a word on the left, then its match on the right.</h3>
+        
+        <div class="match-area">
+            <div class="column">
+                <div class="column-title">Starters</div>
+                <button class="item-btn left-item" data-id="1" data-side="left">electronic</button>
+                <button class="item-btn left-item" data-id="2" data-side="left">population</button>
+                <button class="item-btn left-item" data-id="3" data-side="left">ageing</button>
+                <button class="item-btn left-item" data-id="4" data-side="left">water</button>
+                <button class="item-btn left-item" data-id="5" data-side="left">stray</button>
+                <button class="item-btn left-item" data-id="6" data-side="left">greenhouse</button>
+            </div>
+            <div class="column">
+                <div class="column-title">Endings</div>
+                <!-- Shuffled order -->
+                <button class="item-btn right-item" data-id="4" data-side="right">pollution</button>
+                <button class="item-btn right-item" data-id="6" data-side="right">gases</button>
+                <button class="item-btn right-item" data-id="2" data-side="right">growth</button>
+                <button class="item-btn right-item" data-id="5" data-side="right">animals</button>
+                <button class="item-btn right-item" data-id="1" data-side="right">waste</button>
+                <button class="item-btn right-item" data-id="3" data-side="right">population</button>
+            </div>
+        </div>
+
+        <button class="btn" onclick="checkMatches()">Check Matches</button>
+        <button class="btn btn-secondary" onclick="resetGame()">Reset</button>
+        <div id="feedback1" class="feedback"></div>
+    </div>
+
+    <!-- PHASE 2: ENVIRONMENTAL CHECK -->
+    <div id="phase2" class="phase">
+        <h3 style="text-align:center; margin-bottom:20px;">Step 2: Which of these are primarily ENVIRONMENTAL problems?</h3>
+        
+        <div class="phrase-list">
+            <div class="phrase-item">
+                <input type="checkbox" id="p1" data-env="true">
+                <label for="p1">electronic waste</label>
+                <span class="result-icon" id="icon1"></span>
+            </div>
+            <div class="phrase-item">
+                <input type="checkbox" id="p2" data-env="true">
+                <label for="p2">population growth</label>
+                <span class="result-icon" id="icon2"></span>
+            </div>
+            <div class="phrase-item">
+                <input type="checkbox" id="p3" data-env="false">
+                <label for="p3">ageing population</label>
+                <span class="result-icon" id="icon3"></span>
+            </div>
+            <div class="phrase-item">
+                <input type="checkbox" id="p4" data-env="true">
+                <label for="p4">water pollution</label>
+                <span class="result-icon" id="icon4"></span>
+            </div>
+            <div class="phrase-item">
+                <input type="checkbox" id="p5" data-env="false">
+                <label for="p5">stray animals</label>
+                <span class="result-icon" id="icon5"></span>
+            </div>
+            <div class="phrase-item">
+                <input type="checkbox" id="p6" data-env="true">
+                <label for="p6">greenhouse gases</label>
+                <span class="result-icon" id="icon6"></span>
+            </div>
+        </div>
+
+        <button class="btn" onclick="checkEnvironmental()">Check Answers</button>
+        <div id="feedback2" class="feedback"></div>
+    </div>
+</div>
+
+<script>
+    let selectedLeft = null;
+    let matches = {};
+
+    // Handle Clicks for Matching
+    document.querySelectorAll('.item-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            if (this.classList.contains('matched')) return;
+
+            const side = this.dataset.side;
+            const id = this.dataset.id;
+
+            if (side === 'left') {
+                document.querySelectorAll('.left-item').forEach(i => i.classList.remove('selected'));
+                this.classList.add('selected');
+                selectedLeft = { el: this, id: id };
+            } 
+            else if (side === 'right' && selectedLeft) {
+                // Create a pair
+                const pairClass = `pair-${selectedLeft.id}`;
+                
+                selectedLeft.el.classList.remove('selected');
+                selectedLeft.el.classList.add('matched', pairClass);
+                this.classList.add('matched', pairClass);
+
+                matches[selectedLeft.id] = id;
+                selectedLeft = null;
+            }
+        });
+    });
+
+    function checkMatches() {
+        const feedback = document.getElementById('feedback1');
+        feedback.classList.add('show');
+        
+        // Correct pairs: 1-1(waste), 2-2(growth), 3-3(population), 4-4(pollution), 5-5(animals), 6-6(gases)
+        let isCorrect = true;
+        for (let i = 1; i <= 6; i++) {
+            if (matches[i] !== String(i)) {
+                isCorrect = false;
+                break;
+            }
+        }
+
+        if (isCorrect && Object.keys(matches).length === 6) {
+            feedback.className = 'feedback show success';
+            feedback.innerText = "🎉 Brilliant! All phrases matched correctly. Moving to Step 2...";
+            setTimeout(() => {
+                document.getElementById('phase1').classList.remove('active');
+                document.getElementById('phase2').classList.add('active');
+            }, 1500);
+        } else {
+            feedback.className = 'feedback show error';
+            feedback.innerText = "❌ Not quite right. Check your pairs and try again! (Make sure you've matched all 6).";
+        }
+    }
+
+    function checkEnvironmental() {
+        const feedback = document.getElementById('feedback2');
+        let score = 0;
+        let total = 6;
+
+        for (let i = 1; i <= total; i++) {
+            const checkbox = document.getElementById(`p${i}`);
+            const icon = document.getElementById(`icon${i}`);
+            const isEnv = checkbox.dataset.env === 'true';
+            const isChecked = checkbox.checked;
+
+            icon.style.display = 'inline';
+            if (isEnv === isChecked) {
+                icon.innerText = '✅';
+                score++;
+            } else {
+                icon.innerText = '❌';
+            }
+            checkbox.disabled = true;
+        }
+
+        feedback.classList.add('show');
+        if (score === total) {
+            feedback.className = 'feedback show success';
+            feedback.innerHTML = `🌟 Perfect Score! ${score}/${total}. <br><small><b>Note:</b> "Ageing population" is a demographic/social issue, and "stray animals" is an animal welfare/social issue. The rest directly impact the natural environment!</small>`;
+        } else {
+            feedback.className = 'feedback show error';
+            feedback.innerText = `You got ${score}/${total} correct. Look at the red crosses and think about which issues directly affect nature and the planet!`;
+        }
+    }
+
+    function resetGame() {
+        matches = {};
+        selectedLeft = null;
+        document.querySelectorAll('.item-btn').forEach(btn => {
+            btn.className = `item-btn ${btn.dataset.side}-item`;
+        });
+        document.getElementById('feedback1').classList.remove('show');
+    }
+</script>
+
+</body>
+</html>
